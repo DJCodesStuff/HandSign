@@ -1,8 +1,8 @@
 from hands_package.Build_Model import BuildModel
 
 from flask import Flask, request, jsonify
-import json
-import cv2
+# import json
+# import cv2
 import numpy as np
 
 app = Flask(__name__)
