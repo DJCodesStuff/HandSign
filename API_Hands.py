@@ -32,7 +32,7 @@ def process_frame():
     
     sentence, prev_prediction = model_builder.process_frame(labels_dict, frame, sentence, prev_prediction)
     
-    
+    print(sentence, prev_prediction)
     return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
 
 if __name__ == '__main__':
