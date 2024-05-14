@@ -2,3 +2,4 @@ opencv-python
 numpy
 mediapipe
 scikit-learn
+flask
