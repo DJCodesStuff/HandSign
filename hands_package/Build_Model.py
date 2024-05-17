@@ -24,6 +24,15 @@ class BuildModel:
     # capture = cv2.VideoCapture(0)
     capture = 0
 
+    mp_hands = mp.solutions.hands
+    mp_drawing = mp.solutions.drawing_utils
+    mp_drawing_styles = mp.solutions.drawing_styles
+
+    # hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
+    hands = mp_hands.Hands(static_image_mode=static_image_mode, 
+                                min_detection_confidence=min_detection_confidence, 
+                                max_num_hands=max_num_hands)
+
     @classmethod
     def collecting_data(cls):
         cap = cv2.VideoCapture(cls.capture)
@@ -57,13 +66,13 @@ class BuildModel:
 
     @classmethod
     def dataset_creation(cls):
-        mp_hands = mp.solutions.hands
-        mp_drawing = mp.solutions.drawing_utils
-        mp_drawing_styles = mp.solutions.drawing_styles
+        # mp_hands = mp.solutions.hands
+        # mp_drawing = mp.solutions.drawing_utils
+        # mp_drawing_styles = mp.solutions.drawing_styles
 
-        hands = mp_hands.Hands(static_image_mode=cls.static_image_mode, 
-                                min_detection_confidence=cls.min_detection_confidence, 
-                                max_num_hands=cls.max_num_hands)
+        # hands = mp_hands.Hands(static_image_mode=cls.static_image_mode, 
+        #                         min_detection_confidence=cls.min_detection_confidence, 
+        #                         max_num_hands=cls.max_num_hands)
 
         for dir_ in os.listdir(cls.DATA_DIR):
             if dir_ == ".DS_Store":
@@ -77,7 +86,7 @@ class BuildModel:
                 img = cv2.imread(os.path.join(cls.DATA_DIR, dir_, img_path))
                 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-                results = hands.process(img_rgb)
+                results = cls.hands.process(img_rgb)
                 if results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
                         for i in range(len(hand_landmarks.landmark)):
@@ -135,23 +144,23 @@ class BuildModel:
         model_dict = pickle.load(open('working/model.p', 'rb'))
         model = model_dict['model']
 
-        mp_hands = mp.solutions.hands
-        mp_drawing = mp.solutions.drawing_utils
-        mp_drawing_styles = mp.solutions.drawing_styles
+        # mp_hands = mp.solutions.hands
+        # mp_drawing = mp.solutions.drawing_utils
+        # mp_drawing_styles = mp.solutions.drawing_styles
 
-        hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
+        # hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        results = hands.process(frame_rgb)
+        results = cls.hands.process(frame_rgb)
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
+                cls.mp_drawing.draw_landmarks(
                     frame,  # image to draw
                     hand_landmarks,  # model output
-                    mp_hands.HAND_CONNECTIONS,  # hand connections
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style())
+                    cls.mp_hands.HAND_CONNECTIONS,  # hand connections
+                    cls.mp_drawing_styles.get_default_hand_landmarks_style(),
+                    cls.mp_drawing_styles.get_default_hand_connections_style())
 
             for hand_landmarks in results.multi_hand_landmarks:
                 for i in range(len(hand_landmarks.landmark)):
