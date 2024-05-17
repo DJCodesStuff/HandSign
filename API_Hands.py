@@ -36,6 +36,9 @@ def process_frame():
     return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)
+
+# gunicorn -b 0.0.0.0:6969 API_Hands:app
+
 
 
