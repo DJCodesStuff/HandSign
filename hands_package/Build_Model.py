@@ -154,13 +154,13 @@ class BuildModel:
 
         results = cls.hands.process(frame_rgb)
         if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                cls.mp_drawing.draw_landmarks(
-                    frame,  # image to draw
-                    hand_landmarks,  # model output
-                    cls.mp_hands.HAND_CONNECTIONS,  # hand connections
-                    cls.mp_drawing_styles.get_default_hand_landmarks_style(),
-                    cls.mp_drawing_styles.get_default_hand_connections_style())
+            # for hand_landmarks in results.multi_hand_landmarks:
+            #     cls.mp_drawing.draw_landmarks(
+            #         frame,  # image to draw
+            #         hand_landmarks,  # model output
+            #         cls.mp_hands.HAND_CONNECTIONS,  # hand connections
+            #         cls.mp_drawing_styles.get_default_hand_landmarks_style(),
+            #         cls.mp_drawing_styles.get_default_hand_connections_style())
 
             for hand_landmarks in results.multi_hand_landmarks:
                 for i in range(len(hand_landmarks.landmark)):
