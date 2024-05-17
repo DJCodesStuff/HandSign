@@ -3,4 +3,3 @@ numpy
 mediapipe
 scikit-learn
 flask
-gunicorn
