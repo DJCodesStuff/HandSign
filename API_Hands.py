@@ -1,17 +1,13 @@
 from hands_package.Build_Model import BuildModel
-
 from flask import Flask, request, jsonify
-# import json
-# import cv2
 import numpy as np
 
 app = Flask(__name__)
 model_builder = BuildModel()  # Instantiate your BuildModel class
 
-# @app.route('/collect_data', methods=['POST'])
-# def collect_data():
-#     model_builder.collecting_data()
-#     return jsonify({'message': 'Data collection completed'})
+@app.route('/test_connection', methods=['GET'])
+def test_connection():
+    return jsonify({'message': 'Connection successful'}), 200
 
 @app.route('/create_dataset', methods=['POST'])
 def create_dataset():
@@ -36,9 +32,9 @@ def process_frame():
     return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True)
 
-# gunicorn -b 0.0.0.0:6969 API_Hands:app
+
 
 
 
