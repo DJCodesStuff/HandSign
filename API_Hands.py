@@ -5,7 +5,7 @@ import numpy as np
 app = Flask(__name__)
 model_builder = BuildModel()  # Instantiate your BuildModel class
 
-@app.route('/test_connection', methods=['GET'])
+@app.route('/test_connection', methods=['POST'])
 def test_connection():
     return jsonify({'message': 'Connection successful'}), 200
 
