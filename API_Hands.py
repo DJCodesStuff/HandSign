@@ -21,13 +21,17 @@ def train_model():
 
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
-    labels_dict = request.json.get('labels_dict')
-    frame = np.array(request.json.get('frame'), dtype=np.uint8)
-    sentence = request.json.get('sentence')
-    prev_prediction = request.json.get('prev_prediction')
-    
-    sentence, prev_prediction = model_builder.process_frame(labels_dict, frame, sentence, prev_prediction)
-    
+    try:
+        labels_dict = request.json.get('labels_dict')
+        frame = np.array(request.json.get('frame'), dtype=np.uint8)
+        sentence = request.json.get('sentence')
+        prev_prediction = request.json.get('prev_prediction')
+        
+        sentence, prev_prediction = model_builder.process_frame(labels_dict, frame, sentence, prev_prediction)
+    except Exception as e:
+        print(e)
+        print(frame)
+        
     print(sentence, prev_prediction)
     return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
 
