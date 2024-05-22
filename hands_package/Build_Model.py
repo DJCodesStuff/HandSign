@@ -139,7 +139,7 @@ class BuildModel:
         data_aux = []
         x_ = []
         y_ = []
-        H, W, _ = frame.shape
+        # H, W, _ = frame.shape
 
         model_dict = pickle.load(open('working/model.p', 'rb'))
         model = model_dict['model']
@@ -150,7 +150,7 @@ class BuildModel:
 
         # hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
 
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_rgb = cv2.cvtColor(np.array(frame), cv2.COLOR_BGR2RGB)
 
         results = cls.hands.process(frame_rgb)
         if results.multi_hand_landmarks:
@@ -176,11 +176,11 @@ class BuildModel:
                     data_aux.append(x - min(x_))
                     data_aux.append(y - min(y_))
 
-            x1 = int(min(x_) * W) - 10
-            y1 = int(min(y_) * H) - 10
+            # x1 = int(min(x_) * W) - 10
+            # y1 = int(min(y_) * H) - 10
 
-            x2 = int(max(x_) * W) - 10
-            y2 = int(max(y_) * H) - 10
+            # x2 = int(max(x_) * W) - 10
+            # y2 = int(max(y_) * H) - 10
 
             # Perform prediction if there's data
             if data_aux:
