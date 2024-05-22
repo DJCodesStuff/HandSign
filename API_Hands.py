@@ -28,12 +28,14 @@ def process_frame():
         prev_prediction = request.json.get('prev_prediction')
         
         sentence, prev_prediction = model_builder.process_frame(labels_dict, frame, sentence, prev_prediction)
+        print(sentence, prev_prediction)
+        return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
+    
     except Exception as e:
         print(e)
         print(request.json.get('frame'))
         
-    print(sentence, prev_prediction)
-    return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
+    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
