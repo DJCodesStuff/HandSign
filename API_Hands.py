@@ -1,6 +1,7 @@
 from hands_package.Build_Model import BuildModel
 from flask import Flask, request, jsonify
 import numpy as np
+import base64
 
 app = Flask(__name__)
 model_builder = BuildModel()  # Instantiate your BuildModel class
@@ -21,19 +22,25 @@ def train_model():
 
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
+    # print(request.json)
     try:
-        labels_dict = request.json.get('labels_dict')
-        frame = np.array(request.json.get('frame'), dtype=np.uint8)
+        # labels_dict = request.json.get('labels_dict')
+        labels_dict = {'0': 'A', '1': 'B', '2': 'C'}  # Import from your new file
+        frame = request.json.get('frame')    
         sentence = request.json.get('sentence')
         prev_prediction = request.json.get('prev_prediction')
+        width = request.json.get('width')
+        height = request.json.get('height')
         
-        sentence, prev_prediction = model_builder.process_frame(labels_dict, frame, sentence, prev_prediction)
+        sentence, prev_prediction = model_builder.process_frame(labels_dict = labels_dict, frame = frame, sentence = sentence, prev_prediction = prev_prediction, w = width, h = height)
+        
         print(sentence, prev_prediction)
         return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
+        
     
     except Exception as e:
         print(e)
-        print(request.json.get('frame'))
+        # print(request.json.get('labels_dict'))
         
     
 

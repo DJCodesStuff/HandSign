@@ -135,7 +135,7 @@ class BuildModel:
         f.close()
 
     @classmethod
-    def process_frame(cls, labels_dict, frame, sentence, prev_prediction):
+    def process_frame(cls, labels_dict, frame, sentence, prev_prediction, w, h):
         data_aux = []
         x_ = []
         y_ = []
@@ -150,7 +150,14 @@ class BuildModel:
 
         # hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
 
-        frame_rgb = cv2.cvtColor(np.array(frame), cv2.COLOR_BGR2RGB)
+        # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # frame = np.array(frame, dtype="uint8")
+        width = w  # Replace with actual image width
+        height = h # Replace with actual image height
+
+        # Reshape the flattened list into a NumPy array with the original dimensions (BGR order)
+        frame_rgb = np.array(frame, dtype="uint8").reshape((width, height, 3))
+        # print(frame_rgb.shape)
 
         results = cls.hands.process(frame_rgb)
         if results.multi_hand_landmarks:
