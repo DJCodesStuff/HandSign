@@ -51,22 +51,3 @@ You can start the API and begin sending requests to recognize hand sign language
     ```
 
 2. Send image frame data (e.g., hand images) to the API for recognition. The API will return the corresponding hand sign based on the model’s prediction.
-
-### Example Request
-
-Here’s an example of how to send a request to the API using Python:
-
-```python
-import requests
-
-# URL of the API endpoint
-url = 'http://localhost:5000/predict'
-
-# Image data to send (replace with actual image data)
-image_data = {'frame': open('hand_image.jpg', 'rb')}
-
-# Send the request to the API
-response = requests.post(url, files=image_data)
-
-# Print the API response (hand sign prediction)
-print(response.json())
