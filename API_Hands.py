@@ -1,4 +1,4 @@
-from hands_package.Build_Model import BuildModel
+from hands_package.Build_Model_nn import BuildModel
 from flask import Flask, request, jsonify
 import numpy as np
 import base64
