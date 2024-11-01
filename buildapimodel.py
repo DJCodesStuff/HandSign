@@ -1,4 +1,4 @@
-from hands_package.Build_Model import BuildModel
+from hands_package.Build_Model_nn import BuildModel
 import cv2
 
 model = BuildModel()
