@@ -13,8 +13,8 @@ This project is an API designed to receive frame data (such as hand images) and 
 - **`API_Hands.py`**: Contains the main API functionality to receive frame data and return hand sign predictions.
 - **`API_Hands_req.py`**: Handles API requests and manages the required inputs and outputs for the hand sign recognition.
 - **`buildapimodel.py`**: Used to build and configure the machine learning model for hand sign recognition.
-- **`hands_package/`**: This package contains the model building logic (`Build_Model.py`) and initialization scripts.
-- **`working/`**: Stores the serialized data and model files, including `data.pickle` and `model.p`.
+- **`hands_package/`**: This package contains the model building logic (`Build_Model_nn.py`) and initialization scripts.
+- **`working/`**: Stores the serialized data and model files, including `data.pickle` and `model.h5`.
 
 ## Installation
 
@@ -44,10 +44,22 @@ To set up this project locally, follow the steps below:
 
 You can start the API and begin sending requests to recognize hand sign language from images. Here’s how you can run the API locally:
 
-1. Run the API script:
+1. Create your own dataset using the script buildapimodel.py. When you start the script, a webcam will window will open up with a propmt to press Q wheneer you are ready, put up the hand sign that you want to be as Label 0 and wait for the script to take rames of the Hand sign. After it takes the frames, it will prompt you again for the next label. This will go on for the number of times mentioned in the script Build_Model_nn.py line 17 variable: "number_of_classes".
 
-    ```bash
-    python API_Hands.py
-    ```
+```bash
+python buildapimodel.py
+```
 
-2. Send image frame data (e.g., hand images) to the API for recognition. The API will return the corresponding hand sign based on the model’s prediction.
+2. After this script finishes, you model is ready with your dataset. Now you can start the API_Hands.py script to deploy the flask api.
+
+```bash
+python API_Hands.py
+```
+
+3. I have prepared a test script that runs locally where you test the same signs that you used to create your datasets.
+
+```bash
+python API_Hands_req.py
+```
+
+

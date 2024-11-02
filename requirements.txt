@@ -3,3 +3,4 @@ numpy
 mediapipe
 scikit-learn
 flask
+tensorflow

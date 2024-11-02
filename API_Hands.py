@@ -25,7 +25,7 @@ def process_frame():
     # print(request.json)
     try:
         # labels_dict = request.json.get('labels_dict')
-        labels_dict = {'0': 'A', '1': 'B', '2': 'C'}  # Import from your new file
+        labels_dict = {'0': 'A', '1': 'B', '2': 'C'}  # Give appropriate labels according to the classes you want.
         frame = request.json.get('frame')    
         sentence = request.json.get('sentence')
         prev_prediction = request.json.get('prev_prediction')

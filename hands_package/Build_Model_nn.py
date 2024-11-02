@@ -14,7 +14,7 @@ class BuildModel:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    number_of_classes = 3
+    number_of_classes = 3 # change number here to add more labels for creating dataset.
     dataset_size = 100
 
     static_image_mode = True
@@ -130,6 +130,7 @@ class BuildModel:
         labels = to_categorical(labels)
 
         x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, shuffle=True, stratify=labels)
+        print((x_train.shape[1],))
 
         # Define the neural network model
         model = Sequential([
