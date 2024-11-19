@@ -14,26 +14,41 @@ class BuildModel:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    number_of_classes = 3 # change number here to add more labels for creating dataset.
+    number_of_classes = 3  # Change this number to add more labels for creating the dataset
     dataset_size = 100
 
     static_image_mode = True
     min_detection_confidence = 0.8
-    max_num_hands = 1
+    max_num_hands = 2  # Can handle up to 2 hands now
 
     data = []
     labels = []
-    # capture = cv2.VideoCapture(0)
     capture = 0
 
     mp_hands = mp.solutions.hands
     mp_drawing = mp.solutions.drawing_utils
     mp_drawing_styles = mp.solutions.drawing_styles
 
-    # hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
     hands = mp_hands.Hands(static_image_mode=static_image_mode, 
-                                min_detection_confidence=min_detection_confidence, 
-                                max_num_hands=max_num_hands)
+                           min_detection_confidence=min_detection_confidence, 
+                           max_num_hands=max_num_hands)
+    
+    @staticmethod
+    def pad_sequences(data, max_len):
+        """
+        Pads each sequence in the data to the max_len with zeros.
+        :param data: List of sequences (arrays) with varying lengths
+        :param max_len: Maximum length to pad the sequences to
+        :return: Numpy array of padded sequences
+        """
+        padded_data = []
+        for seq in data:
+            padded_seq = list(seq)  # Ensure the sequence is a list
+            # Pad with zeros if the sequence is shorter than max_len
+            if len(padded_seq) < max_len:
+                padded_seq.extend([0] * (max_len - len(padded_seq)))
+            padded_data.append(padded_seq)
+        return np.array(padded_data)
 
     @classmethod
     def collecting_data(cls):
@@ -68,14 +83,6 @@ class BuildModel:
 
     @classmethod
     def dataset_creation(cls):
-        # mp_hands = mp.solutions.hands
-        # mp_drawing = mp.solutions.drawing_utils
-        # mp_drawing_styles = mp.solutions.drawing_styles
-
-        # hands = mp_hands.Hands(static_image_mode=cls.static_image_mode, 
-        #                         min_detection_confidence=cls.min_detection_confidence, 
-        #                         max_num_hands=cls.max_num_hands)
-
         for dir_ in os.listdir(cls.DATA_DIR):
             if dir_ == ".DS_Store":
                 continue
@@ -91,6 +98,7 @@ class BuildModel:
                 results = cls.hands.process(img_rgb)
                 if results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
+                        hand_data = []
                         for i in range(len(hand_landmarks.landmark)):
                             x = hand_landmarks.landmark[i].x
                             y = hand_landmarks.landmark[i].y
@@ -98,18 +106,19 @@ class BuildModel:
                             x_.append(x)
                             y_.append(y)
 
-                    for i in range(len(hand_landmarks.landmark)):
-                        x = hand_landmarks.landmark[i].x
-                        y = hand_landmarks.landmark[i].y
-                        data_aux.append(x - min(x_))
-                        data_aux.append(y - min(y_))
+                        for i in range(len(hand_landmarks.landmark)):
+                            x = hand_landmarks.landmark[i].x
+                            y = hand_landmarks.landmark[i].y
+                            hand_data.append(x - min(x_))
+                            hand_data.append(y - min(y_))
+
+                        data_aux.extend(hand_data)  # Combine data from multiple hands
 
                     cls.data.append(data_aux)
                     cls.labels.append(dir_)
 
-        f = open('working/data.pickle', 'wb')
-        pickle.dump({'data': cls.data, 'labels': cls.labels}, f)
-        f.close()
+        with open('working/data.pickle', 'wb') as f:
+            pickle.dump({'data': cls.data, 'labels': cls.labels}, f)
 
         print("Directories:")
         for dir_ in os.listdir(cls.DATA_DIR):
@@ -117,9 +126,16 @@ class BuildModel:
 
     @classmethod
     def training_model(cls):
+        # Load data and labels from pickle
         data_dict = pickle.load(open('working/data.pickle', 'rb'))
-        data = np.asarray(data_dict['data'])
+        raw_data = data_dict['data']
         labels = np.asarray(data_dict['labels'])
+
+        # Determine the maximum length of any sequence in raw_data
+        max_length = max(len(seq) for seq in raw_data)
+
+        # Pad sequences to have consistent length
+        data = cls.pad_sequences(raw_data, max_length)
 
         # Convert labels to numerical values if needed
         unique_labels = np.unique(labels)
@@ -129,8 +145,8 @@ class BuildModel:
         # One-hot encode labels if using categorical crossentropy
         labels = to_categorical(labels)
 
+        # Split the data into training and testing sets
         x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, shuffle=True, stratify=labels)
-        print((x_train.shape[1],))
 
         # Define the neural network model
         model = Sequential([
@@ -149,12 +165,14 @@ class BuildModel:
         loss, accuracy = model.evaluate(x_test, y_test)
         print(f'{accuracy * 100:.2f}% of samples were classified correctly!')
 
-        # Save the model using Keras
+        # Save the model
         model.save('working/model.h5')
-
 
     @classmethod
     def process_frame(cls, labels_dict, frame, sentence, prev_prediction, w, h):
+        """
+        Processes a single video frame to predict gestures from one or two hands.
+        """
         data_aux = []
         x_ = []
         y_ = []
@@ -162,11 +180,13 @@ class BuildModel:
         # Load the trained model
         model = load_model('working/model.h5')
 
+        # Convert the frame to the correct format
         frame_rgb = np.array(frame, dtype="uint8").reshape((w, h, 3))
         results = cls.hands.process(frame_rgb)
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
+                hand_data = []
                 for i in range(len(hand_landmarks.landmark)):
                     x = hand_landmarks.landmark[i].x
                     y = hand_landmarks.landmark[i].y
@@ -177,10 +197,18 @@ class BuildModel:
                 for i in range(len(hand_landmarks.landmark)):
                     x = hand_landmarks.landmark[i].x
                     y = hand_landmarks.landmark[i].y
-                    data_aux.append(x - min(x_))
-                    data_aux.append(y - min(y_))
+                    hand_data.append(x - min(x_))
+                    hand_data.append(y - min(y_))
+
+                data_aux.extend(hand_data)  # Concatenate data from multiple hands
 
             if data_aux:
+                # Pad the input to ensure consistent length if only one hand is detected
+                max_features = 42 * 2  # Assuming 21 landmarks per hand and x/y coordinates
+                if len(data_aux) < max_features:
+                    data_aux.extend([0] * (max_features - len(data_aux)))
+
+                # Make prediction
                 prediction = model.predict(np.array([data_aux]))
                 predicted_character = labels_dict[str(np.argmax(prediction))]
 
@@ -189,3 +217,4 @@ class BuildModel:
                     prev_prediction = predicted_character
 
         return sentence, prev_prediction
+
