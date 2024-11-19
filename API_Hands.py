@@ -21,26 +21,29 @@ def train_model():
     return jsonify({'message': 'Model training completed'}), 200
 
 @app.route('/process_frame', methods=['POST'])
-def process_frame():
-    # print(request.json)
+def process_frame_route():
     try:
-        # labels_dict = request.json.get('labels_dict')
-        labels_dict = {'0': 'A', '1': 'B', '2': 'C'}  # Give appropriate labels according to the classes you want.
-        frame = request.json.get('frame')    
-        sentence = request.json.get('sentence')
-        prev_prediction = request.json.get('prev_prediction')
+        labels_dict = {'0': 'A', '1': 'B', '2': 'C'}  # Adjust based on your dataset
+        frame = request.json.get('frame')  # Frame sent as a list or bytes (ensure correct type)
+        sentence = request.json.get('sentence', "")
+        prev_prediction = request.json.get('prev_prediction', "")
         width = request.json.get('width')
         height = request.json.get('height')
-        
-        sentence, prev_prediction = model_builder.process_frame(labels_dict = labels_dict, frame = frame, sentence = sentence, prev_prediction = prev_prediction, w = width, h = height)
-        
-        print(sentence, prev_prediction)
+
+        sentence, prev_prediction = BuildModel.process_frame(
+            labels_dict=labels_dict,
+            frame=frame,
+            sentence=sentence,
+            prev_prediction=prev_prediction,
+            w=width,
+            h=height
+        )
+
         return jsonify({'sentence': sentence, 'prev_prediction': prev_prediction}), 200
-        
-    
     except Exception as e:
-        print(e)
-        # print(request.json.get('labels_dict'))
+        print(f"Error: {e}")
+        return jsonify({'error': str(e)}), 400
+
         
     
 
