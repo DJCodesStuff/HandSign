@@ -16,8 +16,12 @@ class BuildModel:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    # Dynamically set number_of_classes based on directories in DATA_DIR
-    number_of_classes = len([d for d in os.listdir(DATA_DIR_) if os.path.isdir(os.path.join(DATA_DIR_, d))])
+    if len([d for d in os.listdir(DATA_DIR_) if os.path.isdir(os.path.join(DATA_DIR_, d))]) == 26:
+        # Dynamically set number_of_classes based on directories in DATA_DIR
+        number_of_classes = len([d for d in os.listdir(DATA_DIR_) if os.path.isdir(os.path.join(DATA_DIR_, d))])
+    else:
+        number_of_classes = 3 # for testing purposes, change here to make larger dataset
+    
 
     dataset_size = 100
 
@@ -259,9 +263,5 @@ class BuildModel:
         return sentence, prev_prediction
 
 
-model = BuildModel()
 
-# model.collecting_data() 
-model.dataset_creation()
-model.training_model()
 
