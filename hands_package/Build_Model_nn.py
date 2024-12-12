@@ -6,7 +6,7 @@ import mediapipe as mp
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential, load_model, save_model
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l2
 from tensorflow.keras.utils import to_categorical
 
 class BuildModel:
@@ -150,13 +150,32 @@ class BuildModel:
 
         # Define the neural network model
         model = Sequential([
-            Dense(128, input_shape=(x_train.shape[1],), activation='relu'),
-            Dense(64, activation='relu'),
+            # Input layer with batch normalization
+            Dense(256, input_shape=(x_train.shape[1],), activation='relu', kernel_regularizer=l2(0.01)),
+            BatchNormalization(),
+            Dropout(0.3),  # Dropout to reduce overfitting
+            
+            # First hidden layer
+            Dense(128, activation='relu', kernel_regularizer=l2(0.01)),
+            BatchNormalization(),
+            Dropout(0.3),
+            
+            # Second hidden layer
+            Dense(64, activation='relu', kernel_regularizer=l2(0.01)),
+            BatchNormalization(),
+            Dropout(0.3),
+            
+            # Output layer
             Dense(len(unique_labels), activation='softmax')
         ])
+        
 
-        # Compile the model
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        # Compile the model with a suitable optimizer, loss function, and metrics
+        model.compile(
+            optimizer='adam',
+            loss='sparse_categorical_crossentropy',  # Use categorical_crossentropy if labels are one-hot encoded
+            metrics=['accuracy']
+        )
 
         # Train the model
         model.fit(x_train, y_train, epochs=50, batch_size=32, validation_split=0.1)
