@@ -8,13 +8,17 @@ from tensorflow.keras.models import Sequential, load_model, save_model
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.metrics import Precision, Recall, AUC
+DATA_DIR_ = 'working/data'
 
 class BuildModel:
-    DATA_DIR = 'working/data'
+    DATA_DIR = DATA_DIR_
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    number_of_classes = 3  # Change this number to add more labels for creating the dataset
+    # Dynamically set number_of_classes based on directories in DATA_DIR
+    number_of_classes = len([d for d in os.listdir(DATA_DIR_) if os.path.isdir(os.path.join(DATA_DIR_, d))])
+
     dataset_size = 100
 
     static_image_mode = True
@@ -150,18 +154,18 @@ class BuildModel:
 
         # Define the neural network model
         model = Sequential([
-            # Input layer with batch normalization
-            Dense(256, input_shape=(x_train.shape[1],), activation='relu', kernel_regularizer=l2(0.01)),
-            BatchNormalization(),
-            Dropout(0.3),  # Dropout to reduce overfitting
-            
-            # First hidden layer
-            Dense(128, activation='relu', kernel_regularizer=l2(0.01)),
+            # First layer
+            Dense(256, input_shape=(x_train.shape[1],), activation='relu'),
             BatchNormalization(),
             Dropout(0.3),
             
-            # Second hidden layer
-            Dense(64, activation='relu', kernel_regularizer=l2(0.01)),
+            # Second layer
+            Dense(128, activation='relu'),
+            BatchNormalization(),
+            Dropout(0.3),
+            
+            # Third layer
+            Dense(64, activation='relu'),
             BatchNormalization(),
             Dropout(0.3),
             
@@ -173,16 +177,33 @@ class BuildModel:
         # Compile the model with a suitable optimizer, loss function, and metrics
         model.compile(
             optimizer='adam',
-            loss='sparse_categorical_crossentropy',  # Use categorical_crossentropy if labels are one-hot encoded
-            metrics=['accuracy']
+            loss='categorical_crossentropy',
+            metrics=[
+                'accuracy',        # Standard accuracy
+                Precision(name='precision'),  # Precision metric
+                Recall(name='recall'),        # Recall metric
+                AUC(name='auc')              # Area Under the ROC Curve
+                ]
         )
 
         # Train the model
         model.fit(x_train, y_train, epochs=50, batch_size=32, validation_split=0.1)
 
+        
         # Evaluate the model
-        loss, accuracy = model.evaluate(x_test, y_test)
-        print(f'{accuracy * 100:.2f}% of samples were classified correctly!')
+        evaluation_results = model.evaluate(x_test, y_test)
+        loss = evaluation_results[0]  # First value is the loss
+        accuracy = evaluation_results[1]  # Second value is accuracy
+        precision = evaluation_results[2]  # Third value is precision
+        recall = evaluation_results[3]  # Fourth value is recall
+        auc = evaluation_results[4]  # Fifth value is AUC
+
+        # Print results
+        print(f'Loss: {loss:.4f}')
+        print(f'Accuracy: {accuracy * 100:.2f}%')
+        print(f'Precision: {precision:.4f}')
+        print(f'Recall: {recall:.4f}')
+        print(f'AUC: {auc:.4f}')
 
         # Save the model
         model.save('working/model.h5')
@@ -236,4 +257,11 @@ class BuildModel:
                     prev_prediction = predicted_character
 
         return sentence, prev_prediction
+
+
+model = BuildModel()
+
+# model.collecting_data() 
+model.dataset_creation()
+model.training_model()
 

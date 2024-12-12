@@ -3,7 +3,7 @@ import cv2
 
 model = BuildModel()
 
-# model.collecting_data() # uncomment this line to create a sample dataset
+model.collecting_data() 
 model.dataset_creation()
 model.training_model()
 
