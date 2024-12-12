@@ -23,7 +23,7 @@ def train_model():
 @app.route('/process_frame', methods=['POST'])
 def process_frame_route():
     try:
-        labels_dict = {'0': 'A', '1': 'B', '2': 'C'}  # Adjust based on your dataset
+        labels_dict = {'0': 'Hello', '1': 'B', '2': 'C'}  # Adjust based on your dataset
         frame = request.json.get('frame')  # Frame sent as a list or bytes (ensure correct type)
         sentence = request.json.get('sentence', "")
         prev_prediction = request.json.get('prev_prediction', "")
