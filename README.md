@@ -24,6 +24,7 @@ This project includes a Python implementation of a hand gesture recognition syst
 **Neural Network Model**: Implements a feed-forward neural network with:
 
 Three hidden layers:
+
 **Batch normalization for stability**
 
 **Dropout for regularization**
