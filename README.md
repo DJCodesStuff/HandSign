@@ -25,7 +25,9 @@ This project includes a Python implementation of a hand gesture recognition syst
 
 Three hidden layers:
 **Batch normalization for stability**
+
 **Dropout for regularization**
+
 **Softmax output for classification**
 
 **Training**: Trains the model on the processed dataset and evaluates using accuracy, precision, recall, and AUC metrics.
