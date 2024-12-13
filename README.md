@@ -16,6 +16,27 @@ This project is an API designed to receive frame data (such as hand images) and 
 - **`hands_package/`**: This package contains the model building logic (`Build_Model_nn.py`) and initialization scripts.
 - **`working/`**: Stores the serialized data and model files, including `data.pickle` and `model.h5`.
 
+## Hand Gesture Recognition: 
+This project includes a Python implementation of a hand gesture recognition system built with TensorFlow, MediaPipe, and OpenCV. Here's a breakdown of the functionality:
+
+**Data Collection**: Captures hand gesture images via webcam and organizes them into directories, each representing a gesture class.
+**Landmark Extraction**: Uses MediaPipe to detect 2D hand landmarks (21 points per hand) for each image and normalizes the data for consistency.
+**Neural Network Model**: Implements a feed-forward neural network with:
+
+Three hidden layers:
+**Batch normalization for stability**
+**Dropout for regularization**
+**Softmax output for classification**
+
+**Training**: Trains the model on the processed dataset and evaluates using accuracy, precision, recall, and AUC metrics.
+Real-time Gesture Prediction: Processes video frames to predict gestures on-the-fly, updating predictions dynamically based on detected changes.
+Key Features:
+
+**Dynamic Dataset** Handling: The system adapts to the number of gesture classes based on dataset structure.
+Real-time Processing: Leverages MediaPipe and TensorFlow to process and classify hand gestures in live video streams.
+Customizability: Adjustable parameters for gesture class size, dataset size, and model architecture.
+You can use this implementation for gesture-based control systems, sign language translation, or interactive applications!
+
 ## Installation
 
 To set up this project locally, follow the steps below:
