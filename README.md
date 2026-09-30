@@ -1,89 +1,112 @@
-# HandSign - Hand Sign Language Recognition API
+# HandSign
 
-This project is an API designed to receive frame data (such as hand images) and return the corresponding hand sign language using a machine learning model. The API leverages a pre-built model to interpret hand signs and can be integrated into various applications such as sign language translators or educational tools. The project is still under development, and further improvements are being made.
+A Flask API that recognizes hand signs from webcam frames using MediaPipe hand landmarks and a Keras neural network.
 
-## Features
+## Overview
 
-- **Hand Sign Language Detection**: The API processes input frames (images) to recognize and return corresponding hand signs.
-- **Model Integration**: The API uses a trained model for recognizing hand gestures.
-- **Extensible**: The project is designed to be expanded with more features in the future, including improving model accuracy and performance.
+HandSign is a small end-to-end pipeline for sign recognition: collect images of each hand sign from a webcam, turn them into normalized hand-landmark features with MediaPipe, train a feed-forward classifier with TensorFlow/Keras, and serve predictions over a REST API. A client streams frames to the API, which returns the running "sentence" of recognized signs. It was built as a step toward real-time sign language recognition for accessibility.
 
-## Project Structure
+## Key features
 
-- **`API_Hands.py`**: Contains the main API functionality to receive frame data and return hand sign predictions.
-- **`API_Hands_req.py`**: Handles API requests and manages the required inputs and outputs for the hand sign recognition.
-- **`buildapimodel.py`**: Used to build and configure the machine learning model for hand sign recognition.
-- **`hands_package/`**: This package contains the model building logic (`Build_Model_nn.py`) and initialization scripts.
-- **`working/`**: Stores the serialized data and model files, including `data.pickle` and `model.h5`.
+- **Webcam data collection** - captures `dataset_size` (100) images per class into `working/data/<class>/`.
+- **Landmark features** - MediaPipe Hands extracts 21 (x, y) landmarks per hand, supports up to 2 hands, and normalizes coordinates relative to the hand's minimum x/y.
+- **Neural network classifier** - Dense 256 -> 128 -> 64 with BatchNorm and Dropout (0.3), softmax output; trained for 50 epochs and evaluated on accuracy, precision, recall and AUC.
+- **REST API** - Flask endpoints to create the dataset, train the model and classify a frame.
+- **Sentence building** - a sign is appended to the sentence only when the prediction changes, so holding a sign does not repeat it.
 
-## Hand Gesture Recognition: 
-This project includes a Python implementation of a hand gesture recognition system built with TensorFlow, MediaPipe, and OpenCV. Here's a breakdown of the functionality:
+## Tech stack
 
-**Data Collection**: Captures hand gesture images via webcam and organizes them into directories, each representing a gesture class.
-**Landmark Extraction**: Uses MediaPipe to detect 2D hand landmarks (21 points per hand) for each image and normalizes the data for consistency.
-**Neural Network Model**: Implements a feed-forward neural network with:
+Python, Flask, TensorFlow / Keras, MediaPipe, OpenCV, scikit-learn, NumPy.
 
-Three hidden layers:
+## How it works
 
-**Batch normalization for stability**
-
-**Dropout for regularization**
-
-**Softmax output for classification**
-
-**Training**: Trains the model on the processed dataset and evaluates using accuracy, precision, recall, and AUC metrics.
-Real-time Gesture Prediction: Processes video frames to predict gestures on-the-fly, updating predictions dynamically based on detected changes.
-Key Features:
-
-**Dynamic Dataset** Handling: The system adapts to the number of gesture classes based on dataset structure.
-Real-time Processing: Leverages MediaPipe and TensorFlow to process and classify hand gestures in live video streams.
-Customizability: Adjustable parameters for gesture class size, dataset size, and model architecture.
-You can use this implementation for gesture-based control systems, sign language translation, or interactive applications!
-
-## Installation
-
-To set up this project locally, follow the steps below:
-
-1. Clone the repository:
-
-    ```bash
-    git clone https://github.com/your-username/HandSign.git
-    ```
-
-2. Navigate to the project directory:
-
-    ```bash
-    cd HandSign
-    ```
-
-3. Install the required dependencies:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4. Ensure that you have the necessary environment set up for running the API (Python version >= 3.8 is recommended).
-
-## Usage
-
-You can start the API and begin sending requests to recognize hand sign language from images. Here’s how you can run the API locally:
-
-1. Create your own dataset using the script buildapimodel.py. When you start the script, a webcam will window will open up with a propmt to press Q wheneer you are ready, put up the hand sign that you want to be as Label 0 and wait for the script to take rames of the Hand sign. After it takes the frames, it will prompt you again for the next label. This will go on for the number of times mentioned in the script Build_Model_nn.py line 17 variable: "number_of_classes".
-
-```bash
-python buildapimodel.py
+```mermaid
+flowchart LR
+    A[Webcam images<br/>working/data/&lt;class&gt;] --> B[MediaPipe Hands<br/>landmarks]
+    B --> C[working/data.pickle]
+    C --> D[Keras NN training]
+    D --> E[working/model.h5]
+    F[Client frame] --> G[Flask /process_frame]
+    E --> G
+    G --> H[sentence + prev_prediction]
 ```
 
-2. After this script finishes, you model is ready with your dataset. Now you can start the API_Hands.py script to deploy the flask api.
+### API endpoints (`API_Hands.py`, port 6969)
 
-```bash
-python API_Hands.py
+| Method | Route | Description |
+|---|---|---|
+| POST | `/test_connection` | Health check |
+| POST | `/create_dataset` | Extract landmarks from `working/data` into `working/data.pickle` |
+| POST | `/train_model` | Train the network and save `working/model.h5` |
+| POST | `/process_frame` | Classify one frame and update the sentence |
+
+`/process_frame` expects JSON:
+
+```json
+{
+  "frame": [/* flattened RGB uint8 pixel values */],
+  "width": 720,
+  "height": 1280,
+  "sentence": "",
+  "prev_prediction": ""
+}
 ```
 
-3. I have prepared a test script that runs locally where you test the same signs that you used to create your datasets.
+The frame is reshaped to `(width, height, 3)`, so for a 720p webcam frame pass `width=720` (rows) and `height=1280` (columns), as `API_Hands_req.py` does. The response is `{"sentence": ..., "prev_prediction": ...}`. The label names are set by `labels_dict` in `API_Hands.py`; edit it to match your classes.
 
-```bash
-python API_Hands_req.py
+## Repository structure
+
+```
+HandSign/
+├── API_Hands.py              # Flask API server
+├── API_Hands_req.py          # Webcam client that streams frames to the API
+├── buildapimodel.py          # Build dataset + train model from the command line
+├── hands_package/
+│   ├── Build_Model_nn.py     # Data collection, feature extraction, Keras model (used by the API)
+│   └── Build_Model.py        # Earlier single-hand RandomForest version
+├── tesht.py                  # Local webcam test using Build_Model.py (no API)
+├── cropped_test.ipynb        # Scratch notebook: API client and frame cropping experiments
+├── working/
+│   ├── data.pickle           # Extracted landmark features
+│   └── model.h5              # Trained model
+└── requirements.txt
 ```
 
+## Getting started
 
+Requires Python 3.8+ and a webcam.
+
+```bash
+git clone https://github.com/DJCodesStuff/HandSign.git
+cd HandSign
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt requests
+```
+
+`requests` is only needed by the client script.
+
+1. **Collect images and train.** The raw images in `working/data/` are not committed. To record your own, uncomment `model.collecting_data()` in `buildapimodel.py`, then run:
+
+   ```bash
+   python buildapimodel.py
+   ```
+
+   For each class, a webcam window opens; press `Q` when you are ready and hold the sign while 100 frames are captured. The number of classes is `number_of_classes` in `hands_package/Build_Model_nn.py` (3 by default, or 26 if `working/data` already has 26 class folders). The script then writes `working/data.pickle` and `working/model.h5`.
+
+2. **Start the API.**
+
+   ```bash
+   python API_Hands.py
+   ```
+
+3. **Stream frames from your webcam.**
+
+   ```bash
+   python API_Hands_req.py
+   ```
+
+   The client sends 100 frames to `http://127.0.0.1:6969/process_frame` and prints the growing sentence.
+
+## Author
+
+**Dhruv Joshi** - [GitHub](https://github.com/DJCodesStuff) | [Portfolio](https://djcodesstuff.github.io/)

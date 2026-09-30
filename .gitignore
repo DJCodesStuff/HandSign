@@ -3,3 +3,10 @@ working/data
 # buildapimodel.py
 # API_Hands_req.py
 # cropped_test.ipynb
+# Python / OS junk
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+.env
+venv/
